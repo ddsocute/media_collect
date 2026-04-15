@@ -18,6 +18,9 @@ const els = {
   refreshAll: document.querySelector("#refresh-all"),
   refreshSmall: document.querySelector("#refresh-all-small"),
   markRead: document.querySelector("#mark-read"),
+  sidebarToggle: document.querySelector("#sidebar-toggle"),
+  sidebarClose: document.querySelector("#sidebar-close"),
+  sidebarBackdrop: document.querySelector("#sidebar-backdrop"),
   message: document.querySelector("#message"),
   emptyTemplate: document.querySelector("#empty-template")
 };
@@ -57,6 +60,12 @@ function bindEvents() {
   els.refreshAll.addEventListener("click", () => refreshAll());
   els.refreshSmall.addEventListener("click", () => refreshAll());
   els.markRead.addEventListener("click", markAllRead);
+  els.sidebarToggle.addEventListener("click", openSidebar);
+  els.sidebarClose.addEventListener("click", closeSidebar);
+  els.sidebarBackdrop.addEventListener("click", closeSidebar);
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeSidebar();
+  });
 
   document.querySelectorAll(".filter-button").forEach((button) => {
     button.addEventListener("click", () => {
@@ -123,12 +132,25 @@ async function onAddSource(event) {
     });
     form.reset();
     await loadDashboard();
+    closeSidebar();
     hideMessage();
   } catch (error) {
     showMessage(error.message);
   } finally {
     setBusy(false);
   }
+}
+
+function openSidebar() {
+  document.body.classList.add("is-sidebar-open");
+  els.sidebarBackdrop.hidden = false;
+  els.sidebarToggle.setAttribute("aria-expanded", "true");
+}
+
+function closeSidebar() {
+  document.body.classList.remove("is-sidebar-open");
+  els.sidebarBackdrop.hidden = true;
+  els.sidebarToggle.setAttribute("aria-expanded", "false");
 }
 
 async function deleteSource(id) {

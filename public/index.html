@@ -13,16 +13,24 @@
           <p class="eyebrow">Signal Board</p>
           <h1>關注動態</h1>
         </div>
-        <div class="platform-strip" aria-label="平台">
-          <img src="https://www.google.com/s2/favicons?domain=youtube.com&sz=64" alt="YouTube">
-          <img src="https://www.google.com/s2/favicons?domain=spotify.com&sz=64" alt="Podcast">
-          <img src="https://www.google.com/s2/favicons?domain=facebook.com&sz=64" alt="Facebook">
-          <img src="https://www.google.com/s2/favicons?domain=threads.net&sz=64" alt="Threads">
+        <div class="topbar-actions">
+          <button id="sidebar-toggle" class="mobile-sidebar-button" type="button" aria-controls="source-sidebar" aria-expanded="false">來源</button>
+          <div class="platform-strip" aria-label="平台">
+            <img src="https://www.google.com/s2/favicons?domain=youtube.com&sz=64" alt="YouTube">
+            <img src="https://www.google.com/s2/favicons?domain=spotify.com&sz=64" alt="Podcast">
+            <img src="https://www.google.com/s2/favicons?domain=facebook.com&sz=64" alt="Facebook">
+            <img src="https://www.google.com/s2/favicons?domain=threads.net&sz=64" alt="Threads">
+          </div>
         </div>
       </header>
 
       <main class="dashboard">
-        <aside class="sidebar" aria-label="關注來源">
+        <aside id="source-sidebar" class="sidebar" aria-label="關注來源">
+          <div class="sidebar-mobile-header">
+            <strong>來源管理</strong>
+            <button id="sidebar-close" class="text-button" type="button">收合</button>
+          </div>
+
           <section class="panel source-form-panel">
             <div class="section-heading">
               <h2>新增來源</h2>
@@ -109,6 +117,7 @@
         </section>
       </main>
     </div>
+    <div id="sidebar-backdrop" class="sidebar-backdrop" hidden></div>
 
     <template id="empty-template">
       <div class="empty-state">
