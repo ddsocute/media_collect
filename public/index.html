@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>關注動態</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Signal Board</p>
+          <h1>關注動態</h1>
+        </div>
+        <div class="platform-strip" aria-label="平台">
+          <img src="https://www.google.com/s2/favicons?domain=youtube.com&sz=64" alt="YouTube">
+          <img src="https://www.google.com/s2/favicons?domain=spotify.com&sz=64" alt="Podcast">
+          <img src="https://www.google.com/s2/favicons?domain=facebook.com&sz=64" alt="Facebook">
+          <img src="https://www.google.com/s2/favicons?domain=threads.net&sz=64" alt="Threads">
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <aside class="sidebar" aria-label="關注來源">
+          <section class="panel source-form-panel">
+            <div class="section-heading">
+              <h2>新增來源</h2>
+              <span id="source-count">0 個來源</span>
+            </div>
+
+            <form id="source-form" class="source-form">
+              <label>
+                類型
+                <select name="type">
+                  <option value="youtube">YouTube</option>
+                  <option value="podcast">Podcast RSS</option>
+                  <option value="threads">Threads bridge</option>
+                  <option value="facebook">Facebook bridge</option>
+                  <option value="rss">RSS / Atom</option>
+                </select>
+              </label>
+
+              <label>
+                名稱
+                <input name="name" type="text" autocomplete="off" placeholder="例如：某某頻道">
+              </label>
+
+              <label>
+                來源連結
+                <input name="url" type="url" required placeholder="https://youtube.com/@channel">
+              </label>
+
+              <label>
+                Feed 連結
+                <input name="feedUrl" type="url" placeholder="Facebook / Threads 可貼 RSS bridge">
+              </label>
+
+              <label>
+                備註
+                <input name="notes" type="text" autocomplete="off" placeholder="想追的主題">
+              </label>
+
+              <button type="submit" class="primary-button">加入追蹤</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <h2>來源</h2>
+              <button id="refresh-all-small" class="text-button" type="button">刷新</button>
+            </div>
+            <div id="sources-list" class="sources-list"></div>
+          </section>
+        </aside>
+
+        <section class="content-area" aria-label="最新動態">
+          <section class="status-row" aria-live="polite">
+            <div class="metric">
+              <span class="metric-label">未讀</span>
+              <strong id="unread-count">0</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">7 天內更新</span>
+              <strong id="item-count">0</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">上次刷新</span>
+              <strong id="last-refresh">尚未刷新</strong>
+            </div>
+          </section>
+
+          <section class="toolbar">
+            <div class="filter-group" role="group" aria-label="篩選">
+              <button class="filter-button is-active" data-filter="all" type="button">全部</button>
+              <button class="filter-button" data-filter="unread" type="button">未讀</button>
+              <button class="filter-button" data-filter="youtube" type="button">YouTube</button>
+              <button class="filter-button" data-filter="podcast" type="button">Podcast</button>
+              <button class="filter-button" data-filter="social" type="button">社群</button>
+            </div>
+            <div class="action-group">
+              <button id="mark-read" class="secondary-button" type="button">全部已讀</button>
+              <button id="refresh-all" class="primary-button" type="button">刷新動態</button>
+            </div>
+          </section>
+
+          <section id="message" class="message" hidden></section>
+          <section id="items-list" class="items-list"></section>
+        </section>
+      </main>
+    </div>
+
+    <template id="empty-template">
+      <div class="empty-state">
+        <img src="https://www.google.com/s2/favicons?domain=rss.com&sz=64" alt="RSS">
+        <h2>先加入幾個來源</h2>
+        <p>YouTube 貼頻道連結或 RSS；Podcast 貼節目 RSS。Facebook 和 Threads 可先貼 RSS bridge。這裡只保留最近 7 天的動態。</p>
+      </div>
+    </template>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
