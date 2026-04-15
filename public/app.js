@@ -4,6 +4,7 @@ const state = {
   readIds: new Set(),
   sourceErrors: {},
   lastRefresh: null,
+  storage: null,
   filter: "all"
 };
 
@@ -21,6 +22,7 @@ const els = {
   sidebarToggle: document.querySelector("#sidebar-toggle"),
   sidebarClose: document.querySelector("#sidebar-close"),
   sidebarBackdrop: document.querySelector("#sidebar-backdrop"),
+  storageNotice: document.querySelector("#storage-notice"),
   message: document.querySelector("#message"),
   emptyTemplate: document.querySelector("#empty-template")
 };
@@ -116,6 +118,7 @@ function applyDashboard(data) {
   state.readIds = new Set(data.state?.readIds || []);
   state.sourceErrors = data.state?.sourceErrors || {};
   state.lastRefresh = data.state?.lastRefresh || null;
+  state.storage = data.storage || state.storage;
 }
 
 async function onAddSource(event) {
@@ -222,9 +225,21 @@ async function api(url, options = {}) {
 }
 
 function render() {
+  renderStorageNotice();
   renderStats();
   renderSources();
   renderItems();
+}
+
+function renderStorageNotice() {
+  if (!state.storage || state.storage.shared) {
+    els.storageNotice.hidden = true;
+    els.storageNotice.textContent = "";
+    return;
+  }
+
+  els.storageNotice.hidden = false;
+  els.storageNotice.textContent = `目前是${state.storage.label}模式，手機、電腦和 Vercel 不會共用來源。接上 Upstash Redis / Vercel KV 後會自動同步。`;
 }
 
 function renderStats() {

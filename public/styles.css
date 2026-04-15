@@ -125,6 +125,7 @@ h2 {
 .panel,
 .metric,
 .toolbar,
+.storage-notice,
 .message,
 .empty-state,
 .item-card {
@@ -421,6 +422,16 @@ select:focus {
   background: #fff6f5;
 }
 
+.storage-notice {
+  padding: 13px 14px;
+  border-color: rgba(239, 200, 74, 0.58);
+  background: #fffbea;
+  color: #6f5300;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 .empty-state {
   display: grid;
   justify-items: center;
@@ -646,6 +657,7 @@ select:focus {
   .panel,
   .metric,
   .toolbar,
+  .storage-notice,
   .message,
   .empty-state,
   .item-card {

@@ -15,6 +15,12 @@ const RUNTIME_DATA_DIR = IS_VERCEL ? path.join("/tmp", "media_collect") : DATA_D
 const SOURCES_FILE = path.join(RUNTIME_DATA_DIR, "sources.json");
 const STATE_FILE = path.join(RUNTIME_DATA_DIR, "state.json");
 const PUBLIC_DIR = path.join(__dirname, "public");
+const REDIS_REST_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || "";
+const REDIS_REST_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
+const HAS_REDIS = Boolean(REDIS_REST_URL && REDIS_REST_TOKEN);
+const STORAGE_NAMESPACE = process.env.MEDIA_COLLECT_NAMESPACE || "media_collect";
+const SOURCES_KEY = `${STORAGE_NAMESPACE}:sources`;
+const STATE_KEY = `${STORAGE_NAMESPACE}:state`;
 const MAX_ITEMS = 500;
 const RECENT_DAYS = 7;
 const RECENT_WINDOW_MS = RECENT_DAYS * 24 * 60 * 60 * 1000;
@@ -28,6 +34,7 @@ const parser = new XMLParser({
   parseAttributeValue: false
 });
 const convertToTraditional = Converter({ from: "cn", to: "twp" });
+let dataReadyPromise;
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
@@ -47,14 +54,33 @@ app.use(async (req, res, next) => {
 });
 
 async function ensureDataFiles() {
+  if (HAS_REDIS) {
+    await ensureRedisJson(SOURCES_KEY, await readSeedSources());
+    await ensureRedisJson(STATE_KEY, defaultState());
+    return;
+  }
+
   await fs.mkdir(RUNTIME_DATA_DIR, { recursive: true });
   await ensureSourcesFile();
-  await ensureJson(STATE_FILE, {
+  await ensureJson(STATE_FILE, defaultState());
+}
+
+function defaultState() {
+  return {
     items: [],
     readIds: [],
     lastRefresh: null,
     sourceErrors: {}
-  });
+  };
+}
+
+async function readSeedSources() {
+  try {
+    const raw = await fs.readFile(SEED_SOURCES_FILE, "utf8");
+    return raw.trim() ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
 }
 
 async function ensureSourcesFile() {
@@ -80,6 +106,10 @@ async function ensureJson(file, fallback) {
 }
 
 async function readJson(file, fallback) {
+  if (HAS_REDIS) {
+    return readRedisJson(keyForFile(file), fallback);
+  }
+
   await ensureJson(file, fallback);
   const raw = await fs.readFile(file, "utf8");
   if (!raw.trim()) return fallback;
@@ -87,7 +117,70 @@ async function readJson(file, fallback) {
 }
 
 async function writeJson(file, value) {
+  if (HAS_REDIS) {
+    await writeRedisJson(keyForFile(file), value);
+    return;
+  }
+
   await fs.writeFile(file, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function keyForFile(file) {
+  return file === SOURCES_FILE ? SOURCES_KEY : STATE_KEY;
+}
+
+async function ensureRedisJson(key, fallback) {
+  const existing = await redisCommand("GET", key);
+  if (existing == null) {
+    await writeRedisJson(key, fallback);
+  }
+}
+
+async function readRedisJson(key, fallback) {
+  const raw = await redisCommand("GET", key);
+  if (raw == null || raw === "") return fallback;
+  if (typeof raw !== "string") return raw;
+  return JSON.parse(raw);
+}
+
+async function writeRedisJson(key, value) {
+  await redisCommand("SET", key, JSON.stringify(value));
+}
+
+async function redisCommand(command, ...args) {
+  const response = await fetch(REDIS_REST_URL.replace(/\/$/, ""), {
+    method: "POST",
+    headers: {
+      "authorization": `Bearer ${REDIS_REST_TOKEN}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify([command, ...args])
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload.error) {
+    throw new Error(payload.error || `Redis ${command} failed with HTTP ${response.status}`);
+  }
+
+  return payload.result;
+}
+
+function storageInfo() {
+  if (HAS_REDIS) {
+    return {
+      mode: "redis",
+      label: "雲端同步",
+      persistent: true,
+      shared: true
+    };
+  }
+
+  return {
+    mode: IS_VERCEL ? "tmp" : "file",
+    label: IS_VERCEL ? "Vercel 暫存" : "本機檔案",
+    persistent: !IS_VERCEL,
+    shared: false
+  };
 }
 
 function toArray(value) {
@@ -556,18 +649,18 @@ async function refreshSources({ sourceId } = {}) {
 
   await writeJson(SOURCES_FILE, updatedSources);
   await writeJson(STATE_FILE, nextState);
-  return { sources: updatedSources, state: nextState };
+  return { sources: updatedSources, state: nextState, storage: storageInfo() };
 }
 
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, storage: storageInfo() });
 });
 
 app.get("/api/dashboard", async (req, res, next) => {
   try {
     const sources = await readJson(SOURCES_FILE, []);
     const state = withRecentState(await readJson(STATE_FILE, {}));
-    res.json({ sources, state });
+    res.json({ sources, state, storage: storageInfo() });
   } catch (error) {
     next(error);
   }
@@ -662,7 +755,7 @@ app.post("/api/read", async (req, res, next) => {
       items: (state.items || []).map((item) => ({ ...item, read: ids.has(item.id) }))
     };
     await writeJson(STATE_FILE, nextState);
-    res.json({ state: nextState });
+    res.json({ state: nextState, storage: storageInfo() });
   } catch (error) {
     next(error);
   }
@@ -674,7 +767,8 @@ app.use((error, req, res, next) => {
 });
 
 export async function ensureDataReady() {
-  await ensureDataFiles();
+  dataReadyPromise ||= ensureDataFiles();
+  await dataReadyPromise;
 }
 
 export default app;
