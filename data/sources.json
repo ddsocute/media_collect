@@ -4,30 +4,33 @@
     "type": "youtube",
     "name": "@DadhowdoI",
     "url": "https://www.youtube.com/@DadhowdoI",
-    "feedUrl": "",
+    "feedUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UCNepEAWZH0TBu7dkxIbluDw",
     "notes": "",
     "createdAt": "2026-04-15T13:56:07.475Z",
-    "updatedAt": "2026-04-15T13:56:07.475Z"
+    "updatedAt": "2026-04-15T13:56:07.475Z",
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   },
   {
     "id": "82a1ec29-cce5-4af4-899f-fcaa9d409e73",
     "type": "youtube",
     "name": "@hetongxue",
     "url": "https://www.youtube.com/@hetongxue",
-    "feedUrl": "",
+    "feedUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UCP5Kd0smdWe9H_bDH-73c6Q",
     "notes": "",
     "createdAt": "2026-04-15T13:54:37.713Z",
-    "updatedAt": "2026-04-15T13:54:37.713Z"
+    "updatedAt": "2026-04-15T13:54:37.713Z",
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   },
   {
     "id": "dbee58de-df42-4abc-9258-a8912040bc92",
     "type": "youtube",
     "name": "@Ppsharp_newslab",
     "url": "https://www.youtube.com/@Ppsharp_newslab",
-    "feedUrl": "",
+    "feedUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UCMDcOT4z7GS1SRGG2g7z43g",
     "notes": "",
     "createdAt": "2026-04-15T13:54:02.181Z",
-    "updatedAt": "2026-04-15T13:54:02.181Z"
+    "updatedAt": "2026-04-15T13:54:02.181Z",
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   },
   {
     "id": "97078135-9256-46ff-9e22-b9dfb7458503",
@@ -38,7 +41,7 @@
     "notes": "",
     "createdAt": "2026-04-15T13:47:23.796Z",
     "updatedAt": "2026-04-15T13:47:23.796Z",
-    "lastCheckedAt": "2026-04-15T13:50:47.152Z"
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   },
   {
     "id": "594b5b37-9e40-4d26-8140-137891e6bf06",
@@ -49,7 +52,7 @@
     "notes": "",
     "createdAt": "2026-04-15T13:45:59.006Z",
     "updatedAt": "2026-04-15T13:45:59.006Z",
-    "lastCheckedAt": "2026-04-15T13:50:47.161Z"
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   },
   {
     "id": "1fe2e575-59a5-4713-8f61-c161cf2b0ca9",
@@ -60,7 +63,7 @@
     "notes": "",
     "createdAt": "2026-04-15T13:45:43.826Z",
     "updatedAt": "2026-04-15T13:45:43.826Z",
-    "lastCheckedAt": "2026-04-15T13:50:47.171Z"
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   },
   {
     "id": "a6888ccf-1264-4d07-9429-4f137e998146",
@@ -71,7 +74,7 @@
     "notes": "",
     "createdAt": "2026-04-15T13:45:32.574Z",
     "updatedAt": "2026-04-15T13:45:32.574Z",
-    "lastCheckedAt": "2026-04-15T13:50:47.179Z"
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   },
   {
     "id": "c99a66ce-00f2-42bb-b554-cd38f93395cc",
@@ -82,7 +85,7 @@
     "notes": "",
     "createdAt": "2026-04-15T13:45:13.189Z",
     "updatedAt": "2026-04-15T13:45:13.189Z",
-    "lastCheckedAt": "2026-04-15T13:50:47.185Z"
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   },
   {
     "id": "a23b51b5-cf57-4356-9d94-d3c80eeff1f1",
@@ -93,7 +96,7 @@
     "notes": "",
     "createdAt": "2026-04-15T13:42:03.665Z",
     "updatedAt": "2026-04-15T13:42:03.665Z",
-    "lastCheckedAt": "2026-04-15T13:50:47.199Z"
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   },
   {
     "id": "8c1485b0-a3de-4d62-89d2-e45d6e7262e9",
@@ -104,7 +107,7 @@
     "notes": "",
     "createdAt": "2026-04-15T13:40:57.980Z",
     "updatedAt": "2026-04-15T13:40:57.980Z",
-    "lastCheckedAt": "2026-04-15T13:50:47.302Z"
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   },
   {
     "id": "eb0683bc-ffed-4ca7-823d-5b9cbadc367d",
@@ -115,6 +118,6 @@
     "notes": "",
     "createdAt": "2026-04-15T13:38:11.329Z",
     "updatedAt": "2026-04-15T13:38:11.329Z",
-    "lastCheckedAt": "2026-04-15T13:50:47.312Z"
+    "lastCheckedAt": "2026-04-15T14:08:44.615Z"
   }
 ]

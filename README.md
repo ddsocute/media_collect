@@ -24,19 +24,21 @@ Open:
 http://localhost:5173
 ```
 
-## Deploy
+## Deploy To Vercel
 
-The server reads `process.env.PORT`, so it can run on common Node hosts such as Render, Railway, Fly.io, or a VPS.
+Import this repository in Vercel and deploy it as a Node.js project. The included `vercel.json` routes `/api/*` to the Express function and lets Vercel serve the files in `public/`.
 
 Use these settings:
 
 ```text
-Build command: npm install
-Start command: npm start
+Install command: npm install
+Build command: leave empty
 Node version: 20 or newer
 ```
 
 `data/state.json` is generated at runtime and is not committed. `data/sources.json` contains the followed channels and feeds.
+
+On Vercel, runtime JSON writes are stored in `/tmp`, so changes made from the deployed UI can reset after a cold start or redeploy. Commit long-term source changes to `data/sources.json`, or connect a persistent database later.
 
 ## Mobile
 

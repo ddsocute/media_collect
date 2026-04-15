@@ -9,12 +9,16 @@ import { Converter } from "opencc-js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, "data");
-const SOURCES_FILE = path.join(DATA_DIR, "sources.json");
-const STATE_FILE = path.join(DATA_DIR, "state.json");
+const SEED_SOURCES_FILE = path.join(DATA_DIR, "sources.json");
+const IS_VERCEL = Boolean(process.env.VERCEL);
+const RUNTIME_DATA_DIR = IS_VERCEL ? path.join("/tmp", "media_collect") : DATA_DIR;
+const SOURCES_FILE = path.join(RUNTIME_DATA_DIR, "sources.json");
+const STATE_FILE = path.join(RUNTIME_DATA_DIR, "state.json");
 const PUBLIC_DIR = path.join(__dirname, "public");
 const MAX_ITEMS = 500;
 const RECENT_DAYS = 7;
 const RECENT_WINDOW_MS = RECENT_DAYS * 24 * 60 * 60 * 1000;
+const FETCH_TIMEOUT_MS = 8000;
 
 const parser = new XMLParser({
   ignoreAttributes: false,
@@ -28,16 +32,43 @@ const convertToTraditional = Converter({ from: "cn", to: "twp" });
 const app = express();
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(PUBLIC_DIR));
+app.use(async (req, res, next) => {
+  if (!req.path.startsWith("/api/")) {
+    next();
+    return;
+  }
+
+  try {
+    await ensureDataReady();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 async function ensureDataFiles() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await ensureJson(SOURCES_FILE, []);
+  await fs.mkdir(RUNTIME_DATA_DIR, { recursive: true });
+  await ensureSourcesFile();
   await ensureJson(STATE_FILE, {
     items: [],
     readIds: [],
     lastRefresh: null,
     sourceErrors: {}
   });
+}
+
+async function ensureSourcesFile() {
+  try {
+    await fs.access(SOURCES_FILE);
+    return;
+  } catch {
+    try {
+      const seed = await fs.readFile(SEED_SOURCES_FILE, "utf8");
+      await fs.writeFile(SOURCES_FILE, seed.trim() ? seed : "[]\n");
+    } catch {
+      await fs.writeFile(SOURCES_FILE, "[]\n");
+    }
+  }
 }
 
 async function ensureJson(file, fallback) {
@@ -158,7 +189,7 @@ function decodeHtml(value) {
 
 async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 15000);
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
     const response = await fetch(url, {
       headers: {
@@ -398,32 +429,43 @@ async function refreshSources({ sourceId } = {}) {
   const targets = sourceId ? sources.filter((source) => source.id === sourceId) : sources;
   const updatedSources = sources.map((source) => ({ ...source }));
 
-  for (const source of targets) {
-    try {
-      const result = await fetchSourceItems(source);
-      for (const item of result.items) {
-        const previous = previousById.get(item.id);
-        nextItems.push({
-          ...previous,
-          ...item,
-          read: readIds.has(item.id)
-        });
+  const results = await Promise.all(
+    targets.map(async (source) => {
+      try {
+        const result = await fetchSourceItems(source);
+        return { source, result };
+      } catch (error) {
+        return { source, error };
       }
+    })
+  );
 
-      delete sourceErrors[source.id];
-      const sourceIndex = updatedSources.findIndex((item) => item.id === source.id);
-      if (sourceIndex >= 0) {
-        updatedSources[sourceIndex] = {
-          ...updatedSources[sourceIndex],
-          feedUrl: updatedSources[sourceIndex].feedUrl || result.resolvedFeedUrl,
-          name: updatedSources[sourceIndex].name || result.feedTitle,
-          lastCheckedAt: new Date().toISOString()
-        };
-      }
-    } catch (error) {
+  for (const { source, result, error } of results) {
+    if (error) {
       sourceErrors[source.id] = {
         message: error.message,
         checkedAt: new Date().toISOString()
+      };
+      continue;
+    }
+
+    for (const item of result.items) {
+      const previous = previousById.get(item.id);
+      nextItems.push({
+        ...previous,
+        ...item,
+        read: readIds.has(item.id)
+      });
+    }
+
+    delete sourceErrors[source.id];
+    const sourceIndex = updatedSources.findIndex((item) => item.id === source.id);
+    if (sourceIndex >= 0) {
+      updatedSources[sourceIndex] = {
+        ...updatedSources[sourceIndex],
+        feedUrl: updatedSources[sourceIndex].feedUrl || result.resolvedFeedUrl,
+        name: updatedSources[sourceIndex].name || result.feedTitle,
+        lastCheckedAt: new Date().toISOString()
       };
     }
   }
@@ -562,9 +604,16 @@ app.use((error, req, res, next) => {
   res.status(500).json({ error: error.message || "伺服器發生錯誤" });
 });
 
-await ensureDataFiles();
+export async function ensureDataReady() {
+  await ensureDataFiles();
+}
 
-const port = Number(process.env.PORT || 5173);
-app.listen(port, () => {
-  console.log(`Signal Board is running at http://localhost:${port}`);
-});
+export default app;
+
+if (!IS_VERCEL && process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  await ensureDataReady();
+  const port = Number(process.env.PORT || 5173);
+  app.listen(port, () => {
+    console.log(`Signal Board is running at http://localhost:${port}`);
+  });
+}
