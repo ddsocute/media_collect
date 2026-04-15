@@ -128,15 +128,39 @@ function cleanSource(input) {
 function guessNameFromUrl(url) {
   try {
     const parsed = new URL(url);
-    const lastPath = parsed.pathname.split("/").filter(Boolean).pop();
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    if (isApplePodcastHost(parsed.hostname)) {
+      const slug = [...parts].reverse().find((part) => !/^id\d+$/i.test(part) && part !== "podcast");
+      if (slug) return titleFromSlug(slug);
+    }
+
+    const lastPath = parts.pop();
     return decodeURIComponent(lastPath || parsed.hostname.replace(/^www\./, ""));
   } catch {
     return "未命名來源";
   }
 }
 
+function titleFromSlug(value) {
+  return decodeURIComponent(String(value || ""))
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function isApplePodcastHost(hostname) {
+  return /(^|\.)podcasts\.apple\.com$/i.test(String(hostname || ""));
+}
+
 function sourceHome(source) {
   return source.url || source.feedUrl || "";
+}
+
+function shouldUseFeedTitle(source, feedTitle) {
+  if (!feedTitle) return false;
+  const currentName = String(source.name || "");
+  return !currentName || currentName === toTraditional(guessNameFromUrl(source.url));
 }
 
 function parseYoutubeChannelId(value) {
@@ -158,10 +182,54 @@ async function resolveFeedUrl(source) {
   }
 
   if (source.type === "podcast" || source.type === "rss") {
+    if (isApplePodcastUrl(source.url)) {
+      return resolveApplePodcastFeed(source.url);
+    }
     return source.url;
   }
 
   throw new Error("這個來源需要 RSS bridge 或 API token 才能自動更新");
+}
+
+function isApplePodcastUrl(value) {
+  try {
+    return isApplePodcastHost(new URL(value).hostname);
+  } catch {
+    return false;
+  }
+}
+
+function parseApplePodcastId(value) {
+  const match = String(value || "").match(/\/id(\d+)(?:[/?#]|$)/i);
+  return match?.[1] || "";
+}
+
+function appleCountryFromUrl(value) {
+  try {
+    const country = new URL(value).pathname.split("/").filter(Boolean)[0];
+    return /^[a-z]{2}$/i.test(country) ? country.toLowerCase() : "tw";
+  } catch {
+    return "tw";
+  }
+}
+
+async function resolveApplePodcastFeed(url) {
+  const id = parseApplePodcastId(url);
+  if (!id) {
+    throw new Error("找不到 Apple Podcasts 節目 ID");
+  }
+
+  const country = appleCountryFromUrl(url);
+  const lookupUrl = `https://itunes.apple.com/lookup?id=${encodeURIComponent(id)}&country=${encodeURIComponent(country)}`;
+  const response = await fetchWithTimeout(lookupUrl, { accept: "application/json" });
+  const data = await response.json();
+  const result = Array.isArray(data.results) ? data.results.find((item) => item.feedUrl) : null;
+
+  if (!result?.feedUrl) {
+    throw new Error("Apple Podcasts 沒有提供這個節目的 RSS feed");
+  }
+
+  return result.feedUrl;
 }
 
 async function resolveYoutubeFeedFromPage(url) {
@@ -461,10 +529,11 @@ async function refreshSources({ sourceId } = {}) {
     delete sourceErrors[source.id];
     const sourceIndex = updatedSources.findIndex((item) => item.id === source.id);
     if (sourceIndex >= 0) {
+      const currentSource = updatedSources[sourceIndex];
       updatedSources[sourceIndex] = {
-        ...updatedSources[sourceIndex],
-        feedUrl: updatedSources[sourceIndex].feedUrl || result.resolvedFeedUrl,
-        name: updatedSources[sourceIndex].name || result.feedTitle,
+        ...currentSource,
+        feedUrl: currentSource.feedUrl || result.resolvedFeedUrl,
+        name: shouldUseFeedTitle(currentSource, result.feedTitle) ? result.feedTitle : currentSource.name,
         lastCheckedAt: new Date().toISOString()
       };
     }

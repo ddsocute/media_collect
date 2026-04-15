@@ -42,7 +42,7 @@
                 類型
                 <select name="type">
                   <option value="youtube">YouTube</option>
-                  <option value="podcast">Podcast RSS</option>
+                  <option value="podcast">Podcast / Apple</option>
                   <option value="threads">Threads bridge</option>
                   <option value="facebook">Facebook bridge</option>
                   <option value="rss">RSS / Atom</option>
@@ -56,13 +56,15 @@
 
               <label>
                 來源連結
-                <input name="url" type="url" required placeholder="https://youtube.com/@channel">
+                <input name="url" type="url" required placeholder="YouTube、Apple Podcasts 或 RSS 連結">
               </label>
 
               <label>
                 Feed 連結
                 <input name="feedUrl" type="url" placeholder="Facebook / Threads 可貼 RSS bridge">
               </label>
+
+              <p class="form-hint">Podcast 可直接貼 Apple Podcasts 頁面，系統會自動找到 RSS。</p>
 
               <label>
                 備註
@@ -123,7 +125,7 @@
       <div class="empty-state">
         <img src="https://www.google.com/s2/favicons?domain=rss.com&sz=64" alt="RSS">
         <h2>先加入幾個來源</h2>
-        <p>YouTube 貼頻道連結或 RSS；Podcast 貼節目 RSS。Facebook 和 Threads 可先貼 RSS bridge。這裡只保留最近 7 天的動態。</p>
+        <p>YouTube 貼頻道連結或 RSS；Podcast 可貼 Apple Podcasts 頁面或節目 RSS。Facebook 和 Threads 可先貼 RSS bridge。這裡只保留最近 7 天的動態。</p>
       </div>
     </template>
 
