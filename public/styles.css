@@ -570,10 +570,6 @@ select:focus {
     font-size: 1.72rem;
   }
 
-  .source-form-panel {
-    order: 2;
-  }
-
   .platform-strip {
     grid-template-columns: repeat(4, 36px);
   }
